@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.ColorInt;
 import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.content.res.AppCompatResources;
@@ -124,7 +125,8 @@ public class AHBottomNavigationItem {
 		this.colorRes = colorRes;
 		this.color = 0;
 	}
-	
+
+	@Nullable
 	public Drawable getDrawable(Context context) {
 		if (drawableRes != 0) {
 			try {
