@@ -168,14 +168,11 @@ public class AHBottomNavigationBehavior<V extends View> extends VerticalScrollin
 		if (translationAnimator == null) {
 			translationAnimator = ViewCompat.animate(child);
 			translationAnimator.setDuration(withAnimation ? ANIM_DURATION : 0);
-			translationAnimator.setUpdateListener(new ViewPropertyAnimatorUpdateListener() {
-				@Override
-				public void onAnimationUpdate(View view) {
-					if (navigationPositionListener != null) {
-						navigationPositionListener.onPositionChange((int) (view.getMeasuredHeight() - view.getTranslationY() + snackBarY));
-					}
-				}
-			});
+			translationAnimator.setUpdateListener(view -> {
+                if (navigationPositionListener != null) {
+                    navigationPositionListener.onPositionChange((int) (view.getMeasuredHeight() - view.getTranslationY() + snackBarY));
+                }
+            });
 			translationAnimator.setInterpolator(INTERPOLATOR);
 		} else {
 			translationAnimator.setDuration(withAnimation ? ANIM_DURATION : 0);
@@ -197,21 +194,18 @@ public class AHBottomNavigationBehavior<V extends View> extends VerticalScrollin
 		translationObjectAnimator = ObjectAnimator.ofFloat(child, View.TRANSLATION_Y, offset);
 		translationObjectAnimator.setDuration(withAnimation ? ANIM_DURATION : 0);
 		translationObjectAnimator.setInterpolator(INTERPOLATOR);
-		translationObjectAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-			@Override
-			public void onAnimationUpdate(ValueAnimator animation) {
-				if (snackbarLayout != null && snackbarLayout.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
-					targetOffset = child.getMeasuredHeight() - child.getTranslationY();
-					ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) snackbarLayout.getLayoutParams();
-					p.setMargins(p.leftMargin, p.topMargin, p.rightMargin, (int) targetOffset);
-					snackbarLayout.requestLayout();
-				}
-				// Pass navigation height to listener
-				if (navigationPositionListener != null) {
-					navigationPositionListener.onPositionChange((int) (child.getMeasuredHeight() - child.getTranslationY() + snackBarY));
-				}
-			}
-		});
+		translationObjectAnimator.addUpdateListener(animation -> {
+            if (snackbarLayout != null && snackbarLayout.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
+                targetOffset = child.getMeasuredHeight() - child.getTranslationY();
+                ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) snackbarLayout.getLayoutParams();
+                p.setMargins(p.leftMargin, p.topMargin, p.rightMargin, (int) targetOffset);
+                snackbarLayout.requestLayout();
+            }
+            // Pass navigation height to listener
+            if (navigationPositionListener != null) {
+                navigationPositionListener.onPositionChange((int) (child.getMeasuredHeight() - child.getTranslationY() + snackBarY));
+            }
+        });
 	}
 
 

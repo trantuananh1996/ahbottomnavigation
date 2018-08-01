@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.support.annotation.ColorInt;
 import android.support.annotation.Nullable;
@@ -53,15 +54,12 @@ public class AHHelper {
     public static void updateTopMargin(final View view, int fromMargin, int toMargin) {
         ValueAnimator animator = ValueAnimator.ofFloat(fromMargin, toMargin);
         animator.setDuration(150);
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                float animatedValue = (float) valueAnimator.getAnimatedValue();
-                if (view.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
-                    ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
-                    p.setMargins(p.leftMargin, (int) animatedValue, p.rightMargin, p.bottomMargin);
-                    view.requestLayout();
-                }
+        animator.addUpdateListener(valueAnimator -> {
+            float animatedValue = (float) valueAnimator.getAnimatedValue();
+            if (view.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
+                ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
+                p.setMargins(p.leftMargin, (int) animatedValue, p.rightMargin, p.bottomMargin);
+                view.requestLayout();
             }
         });
         animator.start();
@@ -73,15 +71,12 @@ public class AHHelper {
     public static void updateBottomMargin(final View view, int fromMargin, int toMargin, int duration) {
         ValueAnimator animator = ValueAnimator.ofFloat(fromMargin, toMargin);
         animator.setDuration(duration);
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                float animatedValue = (float) valueAnimator.getAnimatedValue();
-                if (view.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
-                    ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
-                    p.setMargins(p.leftMargin, p.topMargin, p.rightMargin, (int) animatedValue);
-                    view.requestLayout();
-                }
+        animator.addUpdateListener(valueAnimator -> {
+            float animatedValue = (float) valueAnimator.getAnimatedValue();
+            if (view.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
+                ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
+                p.setMargins(p.leftMargin, p.topMargin, p.rightMargin, (int) animatedValue);
+                view.requestLayout();
             }
         });
         animator.start();
@@ -93,15 +88,12 @@ public class AHHelper {
     public static void updateLeftMargin(final View view, int fromMargin, int toMargin) {
         ValueAnimator animator = ValueAnimator.ofFloat(fromMargin, toMargin);
         animator.setDuration(150);
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                float animatedValue = (float) valueAnimator.getAnimatedValue();
-                if (view.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
-                    ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
-                    p.setMargins((int) animatedValue, p.topMargin, p.rightMargin, p.bottomMargin);
-                    view.requestLayout();
-                }
+        animator.addUpdateListener(valueAnimator -> {
+            float animatedValue = (float) valueAnimator.getAnimatedValue();
+            if (view.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
+                ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
+                p.setMargins((int) animatedValue, p.topMargin, p.rightMargin, p.bottomMargin);
+                view.requestLayout();
             }
         });
         animator.start();
@@ -113,12 +105,9 @@ public class AHHelper {
     public static void updateTextSize(final TextView textView, float fromSize, float toSize) {
         ValueAnimator animator = ValueAnimator.ofFloat(fromSize, toSize);
         animator.setDuration(150);
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                float animatedValue = (float) valueAnimator.getAnimatedValue();
-                textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, animatedValue);
-            }
+        animator.addUpdateListener(valueAnimator -> {
+            float animatedValue = (float) valueAnimator.getAnimatedValue();
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, animatedValue);
         });
         animator.start();
     }
@@ -129,12 +118,9 @@ public class AHHelper {
     public static void updateAlpha(final View view, float fromValue, float toValue) {
         ValueAnimator animator = ValueAnimator.ofFloat(fromValue, toValue);
         animator.setDuration(150);
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                float animatedValue = (float) valueAnimator.getAnimatedValue();
-                view.setAlpha(animatedValue);
-            }
+        animator.addUpdateListener(valueAnimator -> {
+            float animatedValue = (float) valueAnimator.getAnimatedValue();
+            view.setAlpha(animatedValue);
         });
         animator.start();
     }
@@ -146,12 +132,7 @@ public class AHHelper {
                                        @ColorInt int toColor) {
         ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), fromColor, toColor);
         colorAnimation.setDuration(150);
-        colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animator) {
-                textView.setTextColor((Integer) animator.getAnimatedValue());
-            }
-        });
+        colorAnimation.addUpdateListener(animator -> textView.setTextColor((Integer) animator.getAnimatedValue()));
         colorAnimation.start();
     }
 
@@ -162,12 +143,7 @@ public class AHHelper {
                                                  @ColorInt int toColor) {
         ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), fromColor, toColor);
         colorAnimation.setDuration(150);
-        colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animator) {
-                view.setBackgroundColor((Integer) animator.getAnimatedValue());
-            }
-        });
+        colorAnimation.addUpdateListener(animator -> view.setBackgroundColor((Integer) animator.getAnimatedValue()));
         colorAnimation.start();
     }
 
@@ -179,13 +155,10 @@ public class AHHelper {
                                            @ColorInt int toColor, final boolean forceTint) {
         ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), fromColor, toColor);
         colorAnimation.setDuration(150);
-        colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animator) {
-                imageView.setImageDrawable(AHHelper.getTintDrawable(drawable,
-                        (Integer) animator.getAnimatedValue(), forceTint));
-                imageView.requestLayout();
-            }
+        colorAnimation.addUpdateListener(animator -> {
+            imageView.setImageDrawable(AHHelper.getTintDrawable(drawable,
+                    (Integer) animator.getAnimatedValue(), forceTint));
+            imageView.requestLayout();
         });
         colorAnimation.start();
     }
@@ -196,13 +169,10 @@ public class AHHelper {
     public static void updateWidth(final View view, float fromWidth, float toWidth) {
         ValueAnimator animator = ValueAnimator.ofFloat(fromWidth, toWidth);
         animator.setDuration(150);
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animator) {
-                ViewGroup.LayoutParams params = view.getLayoutParams();
-                params.width = Math.round((float) animator.getAnimatedValue());
-                view.setLayoutParams(params);
-            }
+        animator.addUpdateListener(animator1 -> {
+            ViewGroup.LayoutParams params = view.getLayoutParams();
+            params.width = Math.round((float) animator1.getAnimatedValue());
+            view.setLayoutParams(params);
         });
         animator.start();
     }
@@ -258,5 +228,17 @@ public class AHHelper {
             context = wrapper.getBaseContext();
         }
         return (Activity) context;
+    }
+
+    public static void setBackgroundWithBorder(View view, @ColorInt int color) {
+        //use a GradientDrawable with only one color set, to make it a solid color
+        GradientDrawable border = new GradientDrawable();
+        border.setColor(color); //white background
+        border.setStroke(1, 0xFFCFCFCF); //black border with full opacity
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+            view.setBackgroundDrawable(border);
+        } else {
+            view.setBackground(border);
+        }
     }
 }
