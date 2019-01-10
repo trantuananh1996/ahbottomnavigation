@@ -12,14 +12,15 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.annotation.ColorInt;
-import android.support.annotation.ColorRes;
-import android.support.annotation.DrawableRes;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.ViewCompat;
-import android.support.v4.view.animation.LinearOutSlowInInterpolator;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.ColorRes;
+import androidx.annotation.DrawableRes;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
+import androidx.interpolator.view.animation.LinearOutSlowInInterpolator;
+
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -40,6 +41,7 @@ import android.widget.TextView;
 
 import com.aurelhubert.ahbottomnavigation.notification.AHNotification;
 import com.aurelhubert.ahbottomnavigation.notification.AHNotificationHelper;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -281,6 +283,16 @@ public class AHBottomNavigation extends FrameLayout {
         int layoutHeight = (int) resources.getDimension(R.dimen.bottom_navigation_height);
 
         removeAllViews();
+
+        //Background become transparent in kitkat. Don't know why yet
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT_WATCH) {
+            View fake = new View(context);
+            LayoutParams backgroundLayoutParams = new LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, calculateHeight(layoutHeight));
+            backgroundLayoutParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
+            fake.setBackgroundResource(R.color.colorBottomNavigationActiveColored);
+            addView(fake, backgroundLayoutParams);
+        }
         views.clear();
         backgroundColorView = new View(context);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -499,8 +511,11 @@ public class AHBottomNavigation extends FrameLayout {
 
                 if (itemsEnabledStates[i]) {
                     view.setOnClickListener(v -> updateItems(itemIndex, true));
-                    icon.setImageDrawable(AHHelper.getTintDrawable(items.get(i).getDrawable(context),
-                            current ? itemActiveColor : itemInactiveColor, forceTint));
+                    if (items.get(i).getActiveDrawable() != 0) {
+                        icon.setImageDrawable(items.get(i).getDrawable(context, current));
+                    } else
+                        icon.setImageDrawable(AHHelper.getTintDrawable(items.get(i).getDrawable(context),
+                                current ? itemActiveColor : itemInactiveColor, forceTint));
                     title.setTextColor(current ? itemActiveColor : itemInactiveColor);
                     view.setSoundEffectsEnabled(soundEffectsEnabled);
                 } else {
@@ -618,8 +633,11 @@ public class AHBottomNavigation extends FrameLayout {
             }
 
             if (itemsEnabledStates[i]) {
-                icon.setImageDrawable(AHHelper.getTintDrawable(items.get(i).getDrawable(context),
-                        currentItem == i ? itemActiveColor : itemInactiveColor, forceTint));
+                if (items.get(i).getActiveDrawable() != 0) {
+                    icon.setImageDrawable(items.get(i).getDrawable(context, currentItem == i));
+                } else
+                    icon.setImageDrawable(AHHelper.getTintDrawable(items.get(i).getDrawable(context),
+                            currentItem == i ? itemActiveColor : itemInactiveColor, forceTint));
                 title.setTextColor(currentItem == i ? itemActiveColor : itemInactiveColor);
                 title.setAlpha(currentItem == i ? 1 : 0);
                 view.setOnClickListener(v -> updateSmallItems(itemIndex, true));
@@ -698,8 +716,11 @@ public class AHBottomNavigation extends FrameLayout {
                 AHHelper.updateLeftMargin(notification, notificationInactiveMarginLeft, notificationActiveMarginLeft);
                 AHHelper.updateTextColor(title, itemInactiveColor, itemActiveColor);
                 AHHelper.updateTextSize(title, inactiveSize, activeSize);
-                AHHelper.updateDrawableColor(context, items.get(itemIndex).getDrawable(context), icon,
-                        itemInactiveColor, itemActiveColor, forceTint);
+                if (items.get(i).getActiveDrawable() != 0) {
+                    icon.setImageDrawable(items.get(i).getDrawable(context, true));
+                } else
+                    AHHelper.updateDrawableColor(context, items.get(itemIndex).getDrawable(context), icon,
+                            itemInactiveColor, itemActiveColor, forceTint);
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && colored) {
 
@@ -764,8 +785,11 @@ public class AHBottomNavigation extends FrameLayout {
                 AHHelper.updateLeftMargin(notification, notificationActiveMarginLeft, notificationInactiveMarginLeft);
                 AHHelper.updateTextColor(title, itemActiveColor, itemInactiveColor);
                 AHHelper.updateTextSize(title, activeSize, inactiveSize);
-                AHHelper.updateDrawableColor(context, items.get(currentItem).getDrawable(context), icon,
-                        itemActiveColor, itemInactiveColor, forceTint);
+                if (items.get(i).getActiveDrawable() != 0) {
+                    icon.setImageDrawable(items.get(i).getDrawable(context, false));
+                } else
+                    AHHelper.updateDrawableColor(context, items.get(currentItem).getDrawable(context), icon,
+                            itemActiveColor, itemInactiveColor, forceTint);
             }
         }
 
@@ -833,8 +857,11 @@ public class AHBottomNavigation extends FrameLayout {
                 }
 
                 AHHelper.updateAlpha(title, 0, 1);
-                AHHelper.updateDrawableColor(context, items.get(itemIndex).getDrawable(context), icon,
-                        itemInactiveColor, itemActiveColor, forceTint);
+                if (items.get(i).getActiveDrawable() != 0) {
+                    icon.setImageDrawable(items.get(i).getDrawable(context, true));
+                } else
+                    AHHelper.updateDrawableColor(context, items.get(itemIndex).getDrawable(context), icon,
+                            itemInactiveColor, itemActiveColor, forceTint);
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && colored) {
                     int finalRadius = Math.max(getWidth(), getHeight());
@@ -902,8 +929,11 @@ public class AHBottomNavigation extends FrameLayout {
                 }
 
                 AHHelper.updateAlpha(title, 1, 0);
-                AHHelper.updateDrawableColor(context, items.get(currentItem).getDrawable(context), icon,
-                        itemActiveColor, itemInactiveColor, forceTint);
+                if (items.get(i).getActiveDrawable() != 0) {
+                    icon.setImageDrawable(items.get(i).getDrawable(context, false));
+                } else
+                    AHHelper.updateDrawableColor(context, items.get(currentItem).getDrawable(context), icon,
+                            itemActiveColor, itemInactiveColor, forceTint);
             }
         }
 
