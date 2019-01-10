@@ -30,6 +30,8 @@ public class AHBottomNavigationItem {
     private
     @DrawableRes
     int drawableRes = 0;
+    @DrawableRes
+    int activeDrawableRes = 0;
     private
     @ColorRes
     int colorRes = 0;
@@ -75,6 +77,18 @@ public class AHBottomNavigationItem {
         this.title = title;
         this.drawableRes = resource;
     }
+
+    /**
+     * Constructor
+     *
+     * @param title    Title
+     * @param resource Drawable resource
+     */
+    public AHBottomNavigationItem(@StringRes int title, @DrawableRes int resource) {
+        this.titleRes = title;
+        this.drawableRes = resource;
+    }
+
 
     public AHBottomNavigationItem(@LayoutRes int resId, OnBindCustomItemView onBindCustomItemView) {
         this.customLayoutId = resId;
@@ -177,6 +191,12 @@ public class AHBottomNavigationItem {
         return drawable;
     }
 
+    @Nullable
+    public Drawable getDrawable(Context context, boolean active) {
+        if (active) return getActiveDrawable(context);
+        else return getDrawable(context);
+    }
+
     public void setDrawable(@DrawableRes int drawableRes) {
         this.drawableRes = drawableRes;
         this.drawable = null;
@@ -185,5 +205,25 @@ public class AHBottomNavigationItem {
     public void setDrawable(Drawable drawable) {
         this.drawable = drawable;
         this.drawableRes = 0;
+    }
+
+    public int getActiveDrawable() {
+        return activeDrawableRes;
+    }
+
+    @Nullable
+    public Drawable getActiveDrawable(Context context) {
+        if (activeDrawableRes != 0) {
+            try {
+                return AppCompatResources.getDrawable(context, activeDrawableRes);
+            } catch (Resources.NotFoundException e) {
+                return ContextCompat.getDrawable(context, activeDrawableRes);
+            }
+        }
+        return null;
+    }
+
+    public void setActiveDrawableRes(int activeDrawableRes) {
+        this.activeDrawableRes = activeDrawableRes;
     }
 }
