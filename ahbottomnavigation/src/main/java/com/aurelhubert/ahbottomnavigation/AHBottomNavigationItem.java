@@ -186,7 +186,7 @@ public class AHBottomNavigationItem {
             try {
                 return AppCompatResources.getDrawable(context, drawableRes);
             } catch (Resources.NotFoundException e) {
-                return ContextCompat.getDrawable(context, drawableRes);
+                return AppCompatResources.getDrawable(context, drawableRes);
             }
         }
         return drawable;
@@ -218,7 +218,7 @@ public class AHBottomNavigationItem {
             try {
                 return AppCompatResources.getDrawable(context, activeDrawableRes);
             } catch (Resources.NotFoundException e) {
-                return ContextCompat.getDrawable(context, activeDrawableRes);
+                return AppCompatResources.getDrawable(context, activeDrawableRes);
             }
         }
         return null;
