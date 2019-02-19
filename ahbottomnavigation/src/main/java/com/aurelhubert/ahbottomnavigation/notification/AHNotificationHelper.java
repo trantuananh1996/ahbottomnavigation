@@ -1,6 +1,5 @@
 package com.aurelhubert.ahbottomnavigation.notification;
 
-
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 

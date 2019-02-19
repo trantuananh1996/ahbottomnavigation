@@ -12,16 +12,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
-
-import androidx.annotation.ColorInt;
-import androidx.annotation.ColorRes;
-import androidx.annotation.DrawableRes;
-import androidx.appcompat.content.res.AppCompatResources;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.core.content.ContextCompat;
-import androidx.core.view.ViewCompat;
-import androidx.interpolator.view.animation.LinearOutSlowInInterpolator;
-
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -39,6 +29,15 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.ColorRes;
+import androidx.annotation.DrawableRes;
+import androidx.appcompat.content.res.AppCompatResources;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
+import androidx.interpolator.view.animation.LinearOutSlowInInterpolator;
 
 import com.aurelhubert.ahbottomnavigation.notification.AHNotification;
 import com.aurelhubert.ahbottomnavigation.notification.AHNotificationHelper;
@@ -129,7 +128,7 @@ public class AHBottomNavigation extends FrameLayout {
     private float titleActiveTextSize, titleInactiveTextSize;
     private int bottomNavigationHeight, navigationBarHeight = 0;
     private float selectedItemWidth, notSelectedItemWidth;
-    private boolean forceTint = false;
+    private boolean forceTint = true;
     private TitleState titleState = TitleState.SHOW_WHEN_ACTIVE;
 
     // Notifications
@@ -264,7 +263,6 @@ public class AHBottomNavigation extends FrameLayout {
         notificationAnimationDuration = 150;
 
         ViewCompat.setElevation(this, resources.getDimension(R.dimen.bottom_navigation_elevation));
-        setClipToPadding(false);
 
         ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, bottomNavigationHeight);
@@ -311,9 +309,7 @@ public class AHBottomNavigation extends FrameLayout {
         LayoutParams layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         addView(linearLayoutContainer, layoutParams);
 //        linearLayoutContainer.setBackgroundColor(Color.TRANSPARENT);
-        if (titleState != TitleState.ALWAYS_HIDE &&
-                titleState != TitleState.SHOW_WHEN_ACTIVE_FORCE &&
-                (items.size() == MIN_ITEMS || titleState == TitleState.ALWAYS_SHOW)) {
+        if (isClassic()) {
             createClassicItems(linearLayoutContainer);
         } else {
 //			createClassicItems(linearLayoutContainer);
@@ -380,7 +376,9 @@ public class AHBottomNavigation extends FrameLayout {
      * @return true if classic (icon + title)
      */
     private boolean isClassic() {
-        return titleState == TitleState.ALWAYS_SHOW || items.size() <= MIN_ITEMS && titleState != TitleState.ALWAYS_SHOW;
+        return titleState != TitleState.ALWAYS_HIDE &&
+                titleState != TitleState.SHOW_WHEN_ACTIVE_FORCE &&
+                (items.size() == MIN_ITEMS || titleState == TitleState.ALWAYS_SHOW);
     }
 
     /**
@@ -424,7 +422,7 @@ public class AHBottomNavigation extends FrameLayout {
             activeSize = resources.getDimension(R.dimen.bottom_navigation_text_size_forced_active);
             inactiveSize = resources.getDimension(R.dimen.bottom_navigation_text_size_forced_inactive);
         }
-
+        Drawable iconDrawable;
         for (int i = 0; i < items.size(); i++) {
             final boolean current = currentItem == i;
             final int itemIndex = i;
@@ -514,15 +512,22 @@ public class AHBottomNavigation extends FrameLayout {
                     view.setOnClickListener(v -> updateItems(itemIndex, true));
                     if (items.get(i).getActiveDrawable() != 0) {
                         icon.setImageDrawable(items.get(i).getDrawable(context, current));
-                    } else
-                        icon.setImageDrawable(AHHelper.getTintDrawable(items.get(i).getDrawable(context),
-                                current ? itemActiveColor : itemInactiveColor, forceTint));
+                    } else {
+                        iconDrawable = forceTint ? AHHelper.getTintDrawable(items.get(i).getDrawable(context),
+                                current ? itemActiveColor : itemInactiveColor, forceTint) :
+                                items.get(i).getDrawable(context);
+                        icon.setImageDrawable(iconDrawable);
+                    }
                     title.setTextColor(current ? itemActiveColor : itemInactiveColor);
                     view.setSoundEffectsEnabled(soundEffectsEnabled);
+                    view.setEnabled(true);
                 } else {
-                    icon.setImageDrawable(AHHelper.getTintDrawable(items.get(i).getDrawable(context),
-                            itemDisableColor, forceTint));
+                    iconDrawable = forceTint ? AHHelper.getTintDrawable(items.get(i).getDrawable(context),
+                            itemDisableColor, forceTint) : items.get(i).getDrawable(context);
+                    icon.setImageDrawable(iconDrawable);
                     title.setTextColor(itemDisableColor);
+                    view.setClickable(true);
+                    view.setEnabled(false);
                 }
 
                 LayoutParams params = new LayoutParams((int) itemWidth, (int) height);
@@ -546,7 +551,7 @@ public class AHBottomNavigation extends FrameLayout {
         float minWidth = resources.getDimension(R.dimen.bottom_navigation_small_inactive_min_width);
         float maxWidth = resources.getDimension(R.dimen.bottom_navigation_small_inactive_max_width);
 
-        int layoutWidth = getWidth();
+        int layoutWidth = getWidth() - getPaddingLeft() - getPaddingRight();
         if (layoutWidth == 0 || items.size() == 0) {
             return;
         }
@@ -643,11 +648,14 @@ public class AHBottomNavigation extends FrameLayout {
                 title.setAlpha(currentItem == i ? 1 : 0);
                 view.setOnClickListener(v -> updateSmallItems(itemIndex, true));
                 view.setSoundEffectsEnabled(soundEffectsEnabled);
+                view.setEnabled(true);
             } else {
                 icon.setImageDrawable(AHHelper.getTintDrawable(items.get(i).getDrawable(context),
                         itemDisableColor, forceTint));
                 title.setTextColor(itemDisableColor);
                 title.setAlpha(0);
+                view.setClickable(true);
+                view.setEnabled(false);
             }
 
             int width = i == currentItem ? (int) selectedItemWidth :
@@ -974,7 +982,7 @@ public class AHBottomNavigation extends FrameLayout {
             final int currentTextColor = AHNotificationHelper.getTextColor(notificationItem, notificationTextColor);
             final int currentBackgroundColor = AHNotificationHelper.getBackgroundColor(notificationItem, notificationBackgroundColor);
 
-            TextView notification = views.get(i).findViewById(R.id.bottom_navigation_notification);
+            final TextView notification = views.get(i).findViewById(R.id.bottom_navigation_notification);
             if (notification != null) {//Prevent notification can be null in case use custom item view
                 String currentValue = notification.getText().toString();
                 boolean animate = !currentValue.equals(String.valueOf(notificationItem.getText()));
@@ -1039,6 +1047,21 @@ public class AHBottomNavigation extends FrameLayout {
     ////////////
     // PUBLIC //
     ////////////
+
+    /**
+     * Add an item at the given index
+     */
+    public void addItemAtIndex(int index, AHBottomNavigationItem item) {
+        if (this.items.size() > MAX_ITEMS) {
+            Log.w(TAG, "The items list should not have more than 5 items");
+        }
+        if (index < items.size()) {
+            this.items.add(index, item);
+        } else {
+            Log.w(TAG, "The index is out of bounds (index: " + index + ", size: " + this.items.size() + ")");
+        }
+        createItems();
+    }
 
     /**
      * Add an item
@@ -1297,6 +1320,7 @@ public class AHBottomNavigation extends FrameLayout {
         }
 
         if (titleState != TitleState.ALWAYS_HIDE &&
+                titleState != TitleState.SHOW_WHEN_ACTIVE_FORCE &&
                 (items.size() == MIN_ITEMS || titleState == TitleState.ALWAYS_SHOW)) {
             updateItems(position, useCallback);
         } else {
@@ -1702,9 +1726,9 @@ public class AHBottomNavigation extends FrameLayout {
         this.itemDisableColor = itemDisableColor;
     }
 
-    ////////////////
-    // INTERFACES //
-    ////////////////
+////////////////
+// INTERFACES //
+////////////////
 
     /**
      *

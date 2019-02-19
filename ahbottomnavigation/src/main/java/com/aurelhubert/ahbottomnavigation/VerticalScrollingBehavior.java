@@ -3,7 +3,6 @@ package com.aurelhubert.ahbottomnavigation;
 
 import android.content.Context;
 import android.os.Parcelable;
-
 import androidx.annotation.IntDef;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.view.WindowInsetsCompat;

@@ -15,7 +15,7 @@ ext {
     siteUrl = 'https://github.com/aurelhubert/ahbottomnavigation'
     gitUrl = 'https://github.com/aurelhubert/ahbottomnavigation.git'
 
-    libraryVersion = '2.1.0'
+    libraryVersion = '2.3.4'
 
     developerId = 'aurelhubert'
     developerName = 'Aurelien Hubert'
@@ -35,6 +35,8 @@ android {
         targetSdkVersion 28
         versionCode 40
         versionName "2.1.0"
+        versionCode 46
+        versionName "2.3.4"
     }
     buildTypes {
         release {

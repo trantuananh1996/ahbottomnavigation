@@ -2,10 +2,9 @@ package com.aurelhubert.ahbottomnavigation.notification;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.text.TextUtils;
-
 import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
+import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.List;
