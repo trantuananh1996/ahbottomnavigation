@@ -9,8 +9,6 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
-import androidx.annotation.ColorInt;
-import androidx.core.graphics.drawable.DrawableCompat;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
@@ -41,6 +39,7 @@ public class AHHelper {
     public static Drawable getTintDrawable(@Nullable Drawable drawable, @ColorInt int color, boolean forceTint) {
         if (drawable == null) return null;
         if (forceTint) {
+            drawable.mutate();
             drawable.clearColorFilter();
             drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN);
             drawable.invalidateSelf();
@@ -244,11 +243,6 @@ public class AHHelper {
             view.setBackground(border);
         }
     }
-
-
-
-
-
 
 
 }
