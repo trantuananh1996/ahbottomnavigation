@@ -4,6 +4,7 @@ package com.aurelhubert.ahbottomnavigation;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -22,7 +23,7 @@ public class AHBottomNavigationFABBehavior extends CoordinatorLayout.Behavior<Fl
 	}
 
 	@Override
-	public boolean layoutDependsOn(CoordinatorLayout parent, FloatingActionButton child, View dependency) {
+	public boolean layoutDependsOn(@NonNull CoordinatorLayout parent, @NonNull FloatingActionButton child, @NonNull View dependency) {
 		if (dependency != null && dependency instanceof Snackbar.SnackbarLayout) {
 			return true;
 		} else if (dependency != null && dependency instanceof AHBottomNavigation) {
@@ -32,7 +33,7 @@ public class AHBottomNavigationFABBehavior extends CoordinatorLayout.Behavior<Fl
 	}
 
 	@Override
-	public boolean onDependentViewChanged(CoordinatorLayout parent, FloatingActionButton child, View dependency) {
+	public boolean onDependentViewChanged(@NonNull CoordinatorLayout parent, @NonNull FloatingActionButton child, @NonNull View dependency) {
 		updateFloatingActionButton(child, dependency);
 		return super.onDependentViewChanged(parent, child, dependency);
 	}

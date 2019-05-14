@@ -4,16 +4,16 @@ import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Build;
-
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.ViewPropertyAnimatorCompat;
-import androidx.interpolator.view.animation.LinearOutSlowInInterpolator;
-
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
+
+import androidx.annotation.NonNull;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.ViewPropertyAnimatorCompat;
+import androidx.interpolator.view.animation.LinearOutSlowInInterpolator;
 
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation.OnNavigationPositionListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -62,7 +62,7 @@ public class AHBottomNavigationBehavior<V extends View> extends VerticalScrollin
 	}
 
 	@Override
-	public boolean onLayoutChild(CoordinatorLayout parent, V child, int layoutDirection) {
+	public boolean onLayoutChild(@NonNull CoordinatorLayout parent, @NonNull V child, int layoutDirection) {
 		boolean layoutChild = super.onLayoutChild(parent, child, layoutDirection);
 		if (mTabLayout == null && mTabLayoutId != View.NO_ID) {
 			mTabLayout = findTabLayout(child);
@@ -76,18 +76,18 @@ public class AHBottomNavigationBehavior<V extends View> extends VerticalScrollin
 	}
 
 	@Override
-	public boolean onDependentViewChanged(CoordinatorLayout parent, V child, View dependency) {
+	public boolean onDependentViewChanged(@NonNull CoordinatorLayout parent, @NonNull V child, @NonNull View dependency) {
 		return super.onDependentViewChanged(parent, child, dependency);
 	}
 
 	@Override
-	public void onDependentViewRemoved(CoordinatorLayout parent, V child, View dependency) {
+	public void onDependentViewRemoved(@NonNull CoordinatorLayout parent, @NonNull V child, @NonNull View dependency) {
 		super.onDependentViewRemoved(parent, child, dependency);
 	}
 
 	@Override
-	public boolean layoutDependsOn(CoordinatorLayout parent, V child, View dependency) {
-		if (dependency != null && dependency instanceof Snackbar.SnackbarLayout) {
+	public boolean layoutDependsOn(@NonNull CoordinatorLayout parent, @NonNull V child, @NonNull View dependency) {
+		if (dependency instanceof Snackbar.SnackbarLayout) {
 			updateSnackbar(child, dependency);
 			return true;
 		}
@@ -108,7 +108,7 @@ public class AHBottomNavigationBehavior<V extends View> extends VerticalScrollin
 	}
 
 	@Override
-	public void onNestedScroll(CoordinatorLayout coordinatorLayout, V child, View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed) {
+	public void onNestedScroll(@NonNull CoordinatorLayout coordinatorLayout, @NonNull V child, @NonNull View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed) {
 		super.onNestedScroll(coordinatorLayout, child, target, dxConsumed, dyConsumed, dxUnconsumed, dyUnconsumed);
 		if (dyConsumed < 0) {
 			handleDirection(child, ScrollDirection.SCROLL_DIRECTION_DOWN);
@@ -118,7 +118,7 @@ public class AHBottomNavigationBehavior<V extends View> extends VerticalScrollin
 	}
 
 	@Override
-	public boolean onStartNestedScroll(CoordinatorLayout coordinatorLayout, V child, View directTargetChild, View target, int nestedScrollAxes) {
+	public boolean onStartNestedScroll(@NonNull CoordinatorLayout coordinatorLayout, @NonNull V child, @NonNull View directTargetChild, @NonNull View target, int nestedScrollAxes) {
 		return nestedScrollAxes == ViewCompat.SCROLL_AXIS_VERTICAL || super.onStartNestedScroll(coordinatorLayout, child, directTargetChild, target, nestedScrollAxes);
 	}
 
@@ -278,7 +278,7 @@ public class AHBottomNavigationBehavior<V extends View> extends VerticalScrollin
 	 */
 	public void updateSnackbar(final View child, View dependency) {
 
-		if (dependency != null && dependency instanceof Snackbar.SnackbarLayout) {
+		if (dependency instanceof Snackbar.SnackbarLayout) {
 
 			snackbarLayout = (Snackbar.SnackbarLayout) dependency;
 
