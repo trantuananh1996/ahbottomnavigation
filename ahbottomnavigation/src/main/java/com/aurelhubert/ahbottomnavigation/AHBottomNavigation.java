@@ -83,6 +83,7 @@ public class AHBottomNavigation extends FrameLayout {
 
     // Listener
     private OnTabSelectedListener tabSelectedListener;
+    private OnTabClickListener tabClickListener;
     private OnNavigationPositionListener navigationPositionListener;
 
     // Variables
@@ -436,6 +437,9 @@ public class AHBottomNavigation extends FrameLayout {
                     if (tabSelectedListener != null) {
                         tabSelectedListener.onTabSelected(itemIndex, false);
                     }
+                    if (tabClickListener != null) {
+                        tabClickListener.onTabClicked(itemIndex, false);
+                    }
                 });
                 LayoutParams params = new LayoutParams((int) itemWidth, view.getLayoutParams().height);
                 linearLayout.addView(view, params);
@@ -509,7 +513,13 @@ public class AHBottomNavigation extends FrameLayout {
                 title.setTextSize(TypedValue.COMPLEX_UNIT_PX, current ? activeSize : inactiveSize);
 
                 if (itemsEnabledStates[i]) {
-                    view.setOnClickListener(v -> updateItems(itemIndex, true));
+                    view.setOnClickListener(v -> {
+                        boolean stateBefore = currentItem == itemIndex;
+                        updateItems(itemIndex, true);
+                        if (tabClickListener != null) {
+                            tabClickListener.onTabClicked(itemIndex, stateBefore);
+                        }
+                    });
                     if (items.get(i).getActiveDrawable() != 0) {
                         icon.setImageDrawable(items.get(i).getDrawable(context, current));
                     } else {
@@ -583,6 +593,9 @@ public class AHBottomNavigation extends FrameLayout {
                 view.setOnClickListener(v -> {
                     if (tabSelectedListener != null) {
                         tabSelectedListener.onTabSelected(itemIndex, false);
+                    }
+                    if (tabClickListener != null) {
+                        tabClickListener.onTabClicked(itemIndex, false);
                     }
                 });
                 LayoutParams params = new LayoutParams((int) itemWidth, view.getLayoutParams().height);
@@ -662,7 +675,14 @@ public class AHBottomNavigation extends FrameLayout {
                                 currentItem == i ? itemActiveColor : itemInactiveColor, forceTint));
                     title.setTextColor(currentItem == i ? itemActiveColor : itemInactiveColor);
                     title.setAlpha(currentItem == i ? 1 : 0);
-                    view.setOnClickListener(v -> updateSmallItems(itemIndex, true));
+                    boolean selected = currentItem == i;
+                    view.setOnClickListener(v -> {
+                        boolean stateBefore = currentItem == itemIndex;
+                        updateSmallItems(itemIndex, true);
+                        if (tabClickListener != null) {
+                            tabClickListener.onTabClicked(itemIndex, stateBefore);
+                        }
+                    });
                     view.setSoundEffectsEnabled(soundEffectsEnabled);
                     view.setEnabled(true);
                 } else {
@@ -1509,6 +1529,10 @@ public class AHBottomNavigation extends FrameLayout {
         this.tabSelectedListener = tabSelectedListener;
     }
 
+    public void setTabClickListener(OnTabClickListener tabClickListener) {
+        this.tabClickListener = tabClickListener;
+    }
+
     /**
      * Remove AHOnTabSelectedListener
      */
@@ -1759,6 +1783,20 @@ public class AHBottomNavigation extends FrameLayout {
          * @return boolean: true for updating the tab UI, false otherwise
          */
         boolean onTabSelected(int position, boolean wasSelected);
+    }
+
+    /**
+     *
+     */
+    public interface OnTabClickListener {
+        /**
+         * Called when a tab has been selected (clicked)
+         *
+         * @param position    int: Position of the selected tab
+         * @param wasSelected boolean: true if the tab was already selected
+         * @return boolean: true for updating the tab UI, false otherwise
+         */
+        void onTabClicked(int position, boolean wasSelected);
     }
 
     public interface OnNavigationPositionListener {
