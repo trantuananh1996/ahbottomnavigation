@@ -21,7 +21,11 @@ public class AHBottomNavigationViewPager extends ViewPager {
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		if (this.enabled) {
-			return super.onTouchEvent(event);
+			try {
+				return super.onTouchEvent(event);
+			} catch (IllegalArgumentException ex) {
+				ex.printStackTrace();
+			}
 		}
 
 		return false;
@@ -30,7 +34,11 @@ public class AHBottomNavigationViewPager extends ViewPager {
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent event) {
 		if (this.enabled) {
-			return super.onInterceptTouchEvent(event);
+			try {
+				return super.onInterceptTouchEvent(event);
+			} catch (IllegalArgumentException ex) {
+				ex.printStackTrace();
+			}
 		}
 
 		return false;

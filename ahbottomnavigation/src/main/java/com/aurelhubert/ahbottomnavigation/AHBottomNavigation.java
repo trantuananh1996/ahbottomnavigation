@@ -92,7 +92,7 @@ public class AHBottomNavigation extends FrameLayout {
     private ArrayList<AHBottomNavigationItem> items = new ArrayList<>();
     private ArrayList<View> views = new ArrayList<>();
     private AHBottomNavigationBehavior<AHBottomNavigation> bottomNavigationBehavior;
-    private LinearLayout linearLayoutContainer;
+    private LinearLayout tabItemContainer;
     private View backgroundColorView;
     private Animator circleRevealAnim;
     private boolean colored = false;
@@ -283,6 +283,7 @@ public class AHBottomNavigation extends FrameLayout {
         int layoutHeight = (int) resources.getDimension(R.dimen.bottom_navigation_height);
 
         removeAllViews();
+        backgroundColorView = new View(context);
 
         //Background become transparent in kitkat. Don't know why yet
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT_WATCH) {
@@ -290,31 +291,28 @@ public class AHBottomNavigation extends FrameLayout {
             LayoutParams backgroundLayoutParams = new LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, calculateHeight(layoutHeight));
             backgroundLayoutParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
-            fake.setBackgroundResource(R.color.colorBottomNavigationActiveColored);
-            addView(fake, backgroundLayoutParams);
-        }
-        views.clear();
-        backgroundColorView = new View(context);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            backgroundColorView.setBackgroundResource(R.color.colorBottomNavigationActiveColored);
+            addView(backgroundColorView, 0, backgroundLayoutParams);
+        } else {
             LayoutParams backgroundLayoutParams = new LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, calculateHeight(layoutHeight));
             backgroundLayoutParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
-            addView(backgroundColorView, backgroundLayoutParams);
+            addView(backgroundColorView, 0, backgroundLayoutParams);
             bottomNavigationHeight = layoutHeight;
         }
-
-        linearLayoutContainer = new LinearLayout(context);
-        linearLayoutContainer.setOrientation(LinearLayout.HORIZONTAL);
-        linearLayoutContainer.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM);
+        views.clear();
+        tabItemContainer = new LinearLayout(context);
+        tabItemContainer.setOrientation(LinearLayout.HORIZONTAL);
+        tabItemContainer.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM);
 
         LayoutParams layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        addView(linearLayoutContainer, layoutParams);
-//        linearLayoutContainer.setBackgroundColor(Color.TRANSPARENT);
+        addView(tabItemContainer, layoutParams);
+        tabItemContainer.setBackgroundColor(Color.TRANSPARENT);
         if (isClassic()) {
-            createClassicItems(linearLayoutContainer);
+            createClassicItems(tabItemContainer);
         } else {
 //			createClassicItems(linearLayoutContainer);
-            createSmallItems(linearLayoutContainer);
+            createSmallItems(tabItemContainer);
         }
 
         // Force a request layout after all the items have been created
@@ -388,9 +386,6 @@ public class AHBottomNavigation extends FrameLayout {
      * @param linearLayout The layout where the items are added
      */
     private void createClassicItems(LinearLayout linearLayout) {
-
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
         float height = resources.getDimension(R.dimen.bottom_navigation_height);
         float minWidth = resources.getDimension(R.dimen.bottom_navigation_min_width);
         float maxWidth = resources.getDimension(R.dimen.bottom_navigation_max_width);
@@ -405,7 +400,7 @@ public class AHBottomNavigation extends FrameLayout {
             return;
         }
 
-        float itemWidth = layoutWidth / items.size();
+        float itemWidth = (float) layoutWidth / items.size();
         if (itemWidth < minWidth) {
             itemWidth = minWidth;
         } else if (itemWidth > maxWidth) {
@@ -424,128 +419,141 @@ public class AHBottomNavigation extends FrameLayout {
             inactiveSize = resources.getDimension(R.dimen.bottom_navigation_text_size_forced_inactive);
         }
         Drawable iconDrawable;
-        for (int i = 0; i < items.size(); i++) {
-            final boolean current = currentItem == i;
-            final int itemIndex = i;
+        for (int itemIndex = 0; itemIndex < items.size(); itemIndex++) {
             AHBottomNavigationItem item = items.get(itemIndex);
-
             if (item.isCustomView()) {
                 //For custom item view
-                View view = inflater.inflate(item.getCustomLayoutId(), this, false);
-                item.getOnBindCustomItemView().onBindView(view, item.getData());
-                view.setOnClickListener(v -> {
-                    if (tabSelectedListener != null) {
-                        tabSelectedListener.onTabSelected(itemIndex, false);
-                    }
-                    if (tabClickListener != null) {
-                        tabClickListener.onTabClicked(itemIndex, false);
-                    }
-                });
-                LayoutParams params = new LayoutParams((int) itemWidth, view.getLayoutParams().height);
-                linearLayout.addView(view, params);
-                views.add(view);
-                bottomNavigationHeight = view.getLayoutParams().height;
-//                ViewGroup.LayoutParams pr2 = new ViewGroup.LayoutParams(
-//                        ViewGroup.LayoutParams.MATCH_PARENT, bottomNavigationHeight);
-//                setLayoutParams(pr2);
+                createClassicCustomItemView(linearLayout, (int) itemWidth, itemIndex, item);
             } else {
-                View view = inflater.inflate(R.layout.bottom_navigation_item, this, false);
-                FrameLayout container = view.findViewById(R.id.bottom_navigation_container);
-                ImageView icon = view.findViewById(R.id.bottom_navigation_item_icon);
-                TextView title = view.findViewById(R.id.bottom_navigation_item_title);
-                TextView notification = view.findViewById(R.id.bottom_navigation_notification);
-
-                if (isHideTitleInClassic) {
-                    if (current) AHHelper.updateAlpha(title, 0, 1);
-                    else AHHelper.updateAlpha(title, 1, 0);
-                }
-                icon.setImageDrawable(item.getDrawable(context));
-                title.setText(item.getTitle(context));
-
-                if (titleTypeface != null) {
-                    title.setTypeface(titleTypeface);
-                }
-
-                if (titleState == TitleState.ALWAYS_SHOW && items.size() > MIN_ITEMS) {
-                    container.setPadding(0, container.getPaddingTop(), 0, container.getPaddingBottom());
-                }
-
-                if (current) {
-                    if (selectedBackgroundVisible) {
-                        view.setSelected(true);
-                    }
-                    icon.setSelected(true);
-                    // Update margins (icon & notification)
-                    if (view.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
-                        ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) icon.getLayoutParams();
-                        p.setMargins(p.leftMargin, activePaddingTop, p.rightMargin, p.bottomMargin);
-
-                        ViewGroup.MarginLayoutParams paramsNotification = (ViewGroup.MarginLayoutParams)
-                                notification.getLayoutParams();
-                        paramsNotification.setMargins(notificationActiveMarginLeft, paramsNotification.topMargin,
-                                paramsNotification.rightMargin, paramsNotification.bottomMargin);
-
-                        view.requestLayout();
-                    }
-                } else {
-                    icon.setSelected(false);
-                    ViewGroup.MarginLayoutParams paramsNotification = (ViewGroup.MarginLayoutParams)
-                            notification.getLayoutParams();
-                    paramsNotification.setMargins(notificationInactiveMarginLeft, paramsNotification.topMargin,
-                            paramsNotification.rightMargin, paramsNotification.bottomMargin);
-                }
-
-                if (colored) {
-                    if (current) {
-//                        setBackgroundColor(item.getColor(context));
-                        currentColor = item.getColor(context);
-                    }
-                } else {
-                    if (defaultBackgroundResource != 0) {
-//                        setBackgroundResource(defaultBackgroundResource);
-                        backgroundColorView.setBackgroundResource(defaultBackgroundResource);
-                    } else {
-//                        setBackgroundColor(defaultBackgroundColor);
-                        backgroundColorView.setBackgroundColor(defaultBackgroundColor);
-                    }
-                }
-
-                title.setTextSize(TypedValue.COMPLEX_UNIT_PX, current ? activeSize : inactiveSize);
-
-                if (itemsEnabledStates[i]) {
-                    view.setOnClickListener(v -> {
-                        boolean stateBefore = currentItem == itemIndex;
-                        updateItems(itemIndex, true);
-                        if (tabClickListener != null) {
-                            tabClickListener.onTabClicked(itemIndex, stateBefore);
-                        }
-                    });
-                    if (items.get(i).getActiveDrawable() != 0) {
-                        icon.setImageDrawable(items.get(i).getDrawable(context, current));
-                    } else {
-                        iconDrawable = forceTint ? AHHelper.getTintDrawable(items.get(i).getDrawable(context),
-                                current ? itemActiveColor : itemInactiveColor, forceTint) :
-                                items.get(i).getDrawable(context);
-                        icon.setImageDrawable(iconDrawable);
-                    }
-                    title.setTextColor(current ? itemActiveColor : itemInactiveColor);
-                    view.setSoundEffectsEnabled(soundEffectsEnabled);
-                    view.setEnabled(true);
-                } else {
-                    iconDrawable = forceTint ? AHHelper.getTintDrawable(items.get(i).getDrawable(context),
-                            itemDisableColor, forceTint) : items.get(i).getDrawable(context);
-                    icon.setImageDrawable(iconDrawable);
-                    title.setTextColor(itemDisableColor);
-                    view.setClickable(true);
-                    view.setEnabled(false);
-                }
-
-                LayoutParams params = new LayoutParams((int) itemWidth, (int) height);
-                linearLayout.addView(view, params);
-                views.add(view);
+                createClassicItemView(linearLayout, (int) height, (int) itemWidth, activeSize, inactiveSize, activePaddingTop, itemIndex, item);
             }
         }
         updateNotifications(true, UPDATE_ALL_NOTIFICATIONS);
+    }
+
+    private void createClassicItemView(LinearLayout linearLayout, int height, int itemWidth, float activeSize, float inactiveSize, int activePaddingTop, int itemIndex, AHBottomNavigationItem item) {
+        final boolean isCurrentItem = currentItem == itemIndex;
+        Drawable iconDrawable;
+        View view = LayoutInflater.from(linearLayout.getContext()).inflate(R.layout.bottom_navigation_item, this, false);
+        view.setBackgroundColor(Color.TRANSPARENT);
+        FrameLayout container = view.findViewById(R.id.bottom_navigation_container);
+        ImageView icon = view.findViewById(R.id.bottom_navigation_item_icon);
+        TextView title = view.findViewById(R.id.bottom_navigation_item_title);
+        TextView notification = view.findViewById(R.id.bottom_navigation_notification);
+
+        if (isHideTitleInClassic) {
+            if (isCurrentItem) AHHelper.updateAlpha(title, 0, 1);
+            else AHHelper.updateAlpha(title, 1, 0);
+        }
+        icon.setImageDrawable(item.getDrawable(context));
+        item.setIconTint(icon, isCurrentItem);
+        title.setText(item.getTitle(context));
+
+        if (titleTypeface != null) {
+            title.setTypeface(titleTypeface);
+        }
+
+        if (titleState == TitleState.ALWAYS_SHOW && items.size() > MIN_ITEMS) {
+            container.setPadding(0, container.getPaddingTop(), 0, container.getPaddingBottom());
+        }
+
+        if (isCurrentItem) {
+            if (selectedBackgroundVisible) {
+                view.setSelected(true);
+            }
+            icon.setSelected(true);
+            // Update margins (icon & notification)
+            if (view.getLayoutParams() instanceof MarginLayoutParams) {
+                MarginLayoutParams p = (MarginLayoutParams) icon.getLayoutParams();
+                p.setMargins(p.leftMargin, activePaddingTop, p.rightMargin, p.bottomMargin);
+
+                MarginLayoutParams paramsNotification = (MarginLayoutParams)
+                        notification.getLayoutParams();
+                paramsNotification.setMargins(notificationActiveMarginLeft, paramsNotification.topMargin,
+                        paramsNotification.rightMargin, paramsNotification.bottomMargin);
+
+                view.requestLayout();
+            }
+        } else {
+            icon.setSelected(false);
+            MarginLayoutParams paramsNotification = (MarginLayoutParams)
+                    notification.getLayoutParams();
+            paramsNotification.setMargins(notificationInactiveMarginLeft, paramsNotification.topMargin,
+                    paramsNotification.rightMargin, paramsNotification.bottomMargin);
+        }
+
+        if (colored) {
+            if (isCurrentItem) {
+//                        setBackgroundColor(item.getColor(context));
+                currentColor = item.getColor(context);
+            }
+        } else {
+            if (defaultBackgroundResource != 0) {
+//                        setBackgroundResource(defaultBackgroundResource);
+                backgroundColorView.setBackgroundResource(defaultBackgroundResource);
+            } else {
+//                        setBackgroundColor(defaultBackgroundColor);
+                backgroundColorView.setBackgroundColor(defaultBackgroundColor);
+            }
+        }
+
+        title.setTextSize(TypedValue.COMPLEX_UNIT_PX, isCurrentItem ? activeSize : inactiveSize);
+
+        if (itemsEnabledStates[itemIndex]) {
+            view.setOnClickListener(v -> {
+                boolean stateBefore = currentItem == itemIndex;
+                updateItems(itemIndex, true);
+                if (tabClickListener != null) {
+                    tabClickListener.onTabClicked(itemIndex, stateBefore);
+                }
+            });
+            if (items.get(itemIndex).getActiveDrawable() != 0) {
+                icon.setImageDrawable(items.get(itemIndex).getDrawable(context, isCurrentItem));
+                item.setIconTint(icon, itemIndex == currentItem);
+            } else {
+                iconDrawable = forceTint ? AHHelper.getTintDrawable(items.get(itemIndex).getDrawable(context),
+                        isCurrentItem ? itemActiveColor : itemInactiveColor, forceTint) :
+                        items.get(itemIndex).getDrawable(context);
+                icon.setImageDrawable(iconDrawable);
+                item.setIconTint(icon, itemIndex == currentItem);
+            }
+            title.setTextColor(isCurrentItem ? itemActiveColor : itemInactiveColor);
+            view.setSoundEffectsEnabled(soundEffectsEnabled);
+            view.setEnabled(true);
+        } else {
+            iconDrawable = forceTint ? AHHelper.getTintDrawable(items.get(itemIndex).getDrawable(context),
+                    itemDisableColor, forceTint) : items.get(itemIndex).getDrawable(context);
+            icon.setImageDrawable(iconDrawable);
+            item.setIconTint(icon, itemIndex == currentItem);
+            title.setTextColor(itemDisableColor);
+            view.setClickable(true);
+            view.setEnabled(false);
+        }
+
+        LayoutParams params = new LayoutParams(itemWidth, height);
+        linearLayout.addView(view, params);
+        views.add(view);
+    }
+
+    private void createClassicCustomItemView(LinearLayout linearLayout, int itemWidth, int itemIndex, AHBottomNavigationItem item) {
+        View view = LayoutInflater.from(linearLayout.getContext()).inflate(item.getCustomLayoutId(), this, false);
+        view.setBackgroundColor(Color.TRANSPARENT);
+        item.getOnBindCustomItemView().onBindView(view, item.getData());
+        view.setOnClickListener(v -> {
+            if (tabSelectedListener != null) {
+                tabSelectedListener.onTabSelected(itemIndex, false);
+            }
+            if (tabClickListener != null) {
+                tabClickListener.onTabClicked(itemIndex, false);
+            }
+        });
+        LayoutParams params = new LayoutParams(itemWidth, view.getLayoutParams().height);
+        linearLayout.addView(view, params);
+        views.add(view);
+        bottomNavigationHeight = view.getLayoutParams().height;
+//                ViewGroup.LayoutParams pr2 = new ViewGroup.LayoutParams(
+//                        ViewGroup.LayoutParams.MATCH_PARENT, bottomNavigationHeight);
+//                setLayoutParams(pr2);
     }
 
     /**
@@ -554,9 +562,6 @@ public class AHBottomNavigation extends FrameLayout {
      * @param linearLayout The layout where the items are added
      */
     private void createSmallItems(LinearLayout linearLayout) {
-
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
         float height = resources.getDimension(R.dimen.bottom_navigation_height);
         float minWidth = resources.getDimension(R.dimen.bottom_navigation_small_inactive_min_width);
         float maxWidth = resources.getDimension(R.dimen.bottom_navigation_small_inactive_max_width);
@@ -566,7 +571,7 @@ public class AHBottomNavigation extends FrameLayout {
             return;
         }
 
-        float itemWidth = layoutWidth / items.size();
+        float itemWidth = (float) layoutWidth / items.size();
 
         if (itemWidth < minWidth) {
             itemWidth = minWidth;
@@ -582,132 +587,143 @@ public class AHBottomNavigation extends FrameLayout {
         notSelectedItemWidth = itemWidth;
 
 
-        for (int i = 0; i < items.size(); i++) {
-
-            final int itemIndex = i;
+        for (int itemIndex = 0; itemIndex < items.size(); itemIndex++) {
             AHBottomNavigationItem item = items.get(itemIndex);
             if (item.isCustomView()) {
                 //For custom item view
-                View view = inflater.inflate(item.getCustomLayoutId(), this, false);
-                item.getOnBindCustomItemView().onBindView(view, item.getData());
-                view.setOnClickListener(v -> {
-                    if (tabSelectedListener != null) {
-                        tabSelectedListener.onTabSelected(itemIndex, false);
-                    }
-                    if (tabClickListener != null) {
-                        tabClickListener.onTabClicked(itemIndex, false);
-                    }
-                });
-                LayoutParams params = new LayoutParams((int) itemWidth, view.getLayoutParams().height);
-                linearLayout.addView(view, params);
-                views.add(view);
-                bottomNavigationHeight = view.getLayoutParams().height;
-//                ViewGroup.LayoutParams pr2 = new ViewGroup.LayoutParams(
-//                        ViewGroup.LayoutParams.MATCH_PARENT, bottomNavigationHeight);
-//                setLayoutParams(pr2);
+                createSmallCustomItemView(linearLayout, (int) itemWidth, itemIndex, item);
             } else {
-                View view = inflater.inflate(R.layout.bottom_navigation_small_item, this, false);
-                ImageView icon = view.findViewById(R.id.bottom_navigation_small_item_icon);
-                TextView title = view.findViewById(R.id.bottom_navigation_small_item_title);
-                TextView notification = view.findViewById(R.id.bottom_navigation_notification);
-                icon.setImageDrawable(item.getDrawable(context));
-
-                if (titleState != TitleState.ALWAYS_HIDE) {
-                    title.setText(item.getTitle(context));
-                }
-
-                if (titleActiveTextSize != 0) {
-                    title.setTextSize(TypedValue.COMPLEX_UNIT_PX, titleActiveTextSize);
-                }
-
-                if (titleTypeface != null) {
-                    title.setTypeface(titleTypeface);
-                }
-
-                if (i == currentItem) {
-                    if (selectedBackgroundVisible) {
-                        view.setSelected(true);
-                    }
-                    icon.setSelected(true);
-                    // Update margins (icon & notification)
-
-                    if (titleState != TitleState.ALWAYS_HIDE) {
-                        if (view.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
-                            ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) icon.getLayoutParams();
-                            p.setMargins(p.leftMargin, activeMarginTop, p.rightMargin, p.bottomMargin);
-
-                            ViewGroup.MarginLayoutParams paramsNotification = (ViewGroup.MarginLayoutParams)
-                                    notification.getLayoutParams();
-                            paramsNotification.setMargins(notificationActiveMarginLeft, notificationActiveMarginTop,
-                                    paramsNotification.rightMargin, paramsNotification.bottomMargin);
-
-                            view.requestLayout();
-                        }
-                    }
-                } else {
-                    icon.setSelected(false);
-                    ViewGroup.MarginLayoutParams paramsNotification = (ViewGroup.MarginLayoutParams)
-                            notification.getLayoutParams();
-                    paramsNotification.setMargins(notificationInactiveMarginLeft, notificationInactiveMarginTop,
-                            paramsNotification.rightMargin, paramsNotification.bottomMargin);
-                }
-
-                if (colored) {
-                    if (i == currentItem) {
-//                    setBackgroundColor(item.getColor(context));
-                        currentColor = item.getColor(context);
-                    }
-                } else {
-                    if (defaultBackgroundResource != 0) {
-//                    setBackgroundResource(defaultBackgroundResource);
-                        backgroundColorView.setBackgroundResource(defaultBackgroundResource);
-                    } else {
-//                    setBackgroundColor(defaultBackgroundColor);
-                        AHHelper.setBackgroundWithBorder(backgroundColorView, defaultBackgroundColor);
-                    }
-                }
-
-                if (itemsEnabledStates[i]) {
-                    if (items.get(i).getActiveDrawable() != 0) {
-                        icon.setImageDrawable(items.get(i).getDrawable(context, currentItem == i));
-                    } else
-                        icon.setImageDrawable(AHHelper.getTintDrawable(items.get(i).getDrawable(context),
-                                currentItem == i ? itemActiveColor : itemInactiveColor, forceTint));
-                    title.setTextColor(currentItem == i ? itemActiveColor : itemInactiveColor);
-                    title.setAlpha(currentItem == i ? 1 : 0);
-                    boolean selected = currentItem == i;
-                    view.setOnClickListener(v -> {
-                        boolean stateBefore = currentItem == itemIndex;
-                        updateSmallItems(itemIndex, true);
-                        if (tabClickListener != null) {
-                            tabClickListener.onTabClicked(itemIndex, stateBefore);
-                        }
-                    });
-                    view.setSoundEffectsEnabled(soundEffectsEnabled);
-                    view.setEnabled(true);
-                } else {
-                    icon.setImageDrawable(AHHelper.getTintDrawable(items.get(i).getDrawable(context),
-                            itemDisableColor, forceTint));
-                    title.setTextColor(itemDisableColor);
-                    title.setAlpha(0);
-                    view.setClickable(true);
-                    view.setEnabled(false);
-                }
-
-                int width = i == currentItem ? (int) selectedItemWidth :
-                        (int) itemWidth;
-
-                if (titleState == TitleState.ALWAYS_HIDE) {
-                    width = (int) (itemWidth * 1.16);
-                }
-
-                LayoutParams params = new LayoutParams(width, (int) height);
-                linearLayout.addView(view, params);
-                views.add(view);
+                createSmallItemView(linearLayout, (int) height, itemWidth, activeMarginTop, itemIndex, item);
             }
         }
 
         updateNotifications(true, UPDATE_ALL_NOTIFICATIONS);
+    }
+
+    private void createSmallItemView(LinearLayout linearLayout, int height, float itemWidth, int activeMarginTop, int itemIndex, AHBottomNavigationItem item) {
+        boolean isCurrentItem = itemIndex == currentItem;
+        View view = LayoutInflater.from(linearLayout.getContext()).inflate(R.layout.bottom_navigation_small_item, this, false);
+        view.setBackgroundColor(Color.TRANSPARENT);
+        ImageView icon = view.findViewById(R.id.bottom_navigation_small_item_icon);
+        TextView title = view.findViewById(R.id.bottom_navigation_small_item_title);
+        TextView notification = view.findViewById(R.id.bottom_navigation_notification);
+        icon.setImageDrawable(item.getDrawable(context));
+        item.setIconTint(icon, isCurrentItem);
+
+        if (titleState != TitleState.ALWAYS_HIDE) {
+            title.setText(item.getTitle(context));
+        }
+
+        if (titleActiveTextSize != 0) {
+            title.setTextSize(TypedValue.COMPLEX_UNIT_PX, titleActiveTextSize);
+        }
+
+        if (titleTypeface != null) {
+            title.setTypeface(titleTypeface);
+        }
+
+        if (isCurrentItem) {
+            if (selectedBackgroundVisible) {
+                view.setSelected(true);
+            }
+            icon.setSelected(true);
+            // Update margins (icon & notification)
+
+            if (titleState != TitleState.ALWAYS_HIDE) {
+                if (view.getLayoutParams() instanceof MarginLayoutParams) {
+                    MarginLayoutParams p = (MarginLayoutParams) icon.getLayoutParams();
+                    p.setMargins(p.leftMargin, activeMarginTop, p.rightMargin, p.bottomMargin);
+
+                    MarginLayoutParams paramsNotification = (MarginLayoutParams)
+                            notification.getLayoutParams();
+                    paramsNotification.setMargins(notificationActiveMarginLeft, notificationActiveMarginTop,
+                            paramsNotification.rightMargin, paramsNotification.bottomMargin);
+
+                    view.requestLayout();
+                }
+            }
+        } else {
+            icon.setSelected(false);
+            MarginLayoutParams paramsNotification = (MarginLayoutParams)
+                    notification.getLayoutParams();
+            paramsNotification.setMargins(notificationInactiveMarginLeft, notificationInactiveMarginTop,
+                    paramsNotification.rightMargin, paramsNotification.bottomMargin);
+        }
+
+        if (colored) {
+            if (isCurrentItem) {
+//                    setBackgroundColor(item.getColor(context));
+                currentColor = item.getColor(context);
+            }
+        } else {
+            if (defaultBackgroundResource != 0) {
+//                    setBackgroundResource(defaultBackgroundResource);
+                backgroundColorView.setBackgroundResource(defaultBackgroundResource);
+            } else {
+//                    setBackgroundColor(defaultBackgroundColor);
+                AHHelper.setBackgroundWithBorder(backgroundColorView, defaultBackgroundColor);
+            }
+        }
+
+        if (itemsEnabledStates[itemIndex]) {
+            if (items.get(itemIndex).getActiveDrawable() != 0) {
+                icon.setImageDrawable(items.get(itemIndex).getDrawable(context, currentItem == itemIndex));
+                item.setIconTint(icon, isCurrentItem);
+            } else {
+                icon.setImageDrawable(AHHelper.getTintDrawable(items.get(itemIndex).getDrawable(context),
+                        currentItem == itemIndex ? itemActiveColor : itemInactiveColor, forceTint));
+                item.setIconTint(icon, isCurrentItem);
+            }
+            title.setTextColor(currentItem == itemIndex ? itemActiveColor : itemInactiveColor);
+            title.setAlpha(currentItem == itemIndex ? 1 : 0);
+            boolean selected = currentItem == itemIndex;
+            view.setOnClickListener(v -> {
+                boolean stateBefore = currentItem == itemIndex;
+                updateSmallItems(itemIndex, true);
+                if (tabClickListener != null) {
+                    tabClickListener.onTabClicked(itemIndex, stateBefore);
+                }
+            });
+            view.setSoundEffectsEnabled(soundEffectsEnabled);
+            view.setEnabled(true);
+        } else {
+            icon.setImageDrawable(AHHelper.getTintDrawable(items.get(itemIndex).getDrawable(context),
+                    itemDisableColor, forceTint));
+            item.setIconTint(icon, isCurrentItem);
+            title.setTextColor(itemDisableColor);
+            title.setAlpha(0);
+            view.setClickable(true);
+            view.setEnabled(false);
+        }
+
+        int width = isCurrentItem ? (int) selectedItemWidth :
+                (int) itemWidth;
+
+        if (titleState == TitleState.ALWAYS_HIDE) {
+            width = (int) (itemWidth * 1.16);
+        }
+
+        LayoutParams params = new LayoutParams(width, height);
+        linearLayout.addView(view, params);
+        views.add(view);
+    }
+
+    private void createSmallCustomItemView(LinearLayout linearLayout, int itemWidth, int itemIndex, AHBottomNavigationItem item) {
+        View view = LayoutInflater.from(linearLayout.getContext()).inflate(item.getCustomLayoutId(), this, false);
+        view.setBackgroundColor(Color.TRANSPARENT);
+        item.getOnBindCustomItemView().onBindView(view, item.getData());
+        view.setOnClickListener(v -> {
+            if (tabSelectedListener != null) {
+                tabSelectedListener.onTabSelected(itemIndex, false);
+            }
+            if (tabClickListener != null) {
+                tabClickListener.onTabClicked(itemIndex, false);
+            }
+        });
+        LayoutParams params = new LayoutParams(itemWidth, view.getLayoutParams().height);
+        linearLayout.addView(view, params);
+        views.add(view);
+        bottomNavigationHeight = view.getLayoutParams().height;
     }
 
 
@@ -764,6 +780,7 @@ public class AHBottomNavigation extends FrameLayout {
                 AHHelper.updateTextSize(title, inactiveSize, activeSize);
                 if (items.get(i).getActiveDrawable() != 0) {
                     icon.setImageDrawable(items.get(i).getDrawable(context, true));
+                    items.get(i).setIconTint(icon, i == currentItem);
                 } else
                     AHHelper.updateDrawableColor(context, items.get(itemIndex).getDrawable(context), icon,
                             itemInactiveColor, itemActiveColor, forceTint);
@@ -833,6 +850,7 @@ public class AHBottomNavigation extends FrameLayout {
                 AHHelper.updateTextSize(title, activeSize, inactiveSize);
                 if (items.get(i).getActiveDrawable() != 0) {
                     icon.setImageDrawable(items.get(i).getDrawable(context, false));
+                    items.get(i).setIconTint(icon, i == currentItem);
                 } else
                     AHHelper.updateDrawableColor(context, items.get(currentItem).getDrawable(context), icon,
                             itemActiveColor, itemInactiveColor, forceTint);
@@ -905,6 +923,7 @@ public class AHBottomNavigation extends FrameLayout {
                 AHHelper.updateAlpha(title, 0, 1);
                 if (items.get(i).getActiveDrawable() != 0) {
                     icon.setImageDrawable(items.get(i).getDrawable(context, true));
+                    items.get(i).setIconTint(icon, i == currentItem);
                 } else
                     AHHelper.updateDrawableColor(context, items.get(itemIndex).getDrawable(context), icon,
                             itemInactiveColor, itemActiveColor, forceTint);
@@ -977,6 +996,7 @@ public class AHBottomNavigation extends FrameLayout {
                 AHHelper.updateAlpha(title, 1, 0);
                 if (items.get(i).getActiveDrawable() != 0) {
                     icon.setImageDrawable(items.get(i).getDrawable(context, false));
+                    items.get(i).setIconTint(icon, i == currentItem);
                 } else
                     AHHelper.updateDrawableColor(context, items.get(currentItem).getDrawable(context), icon,
                             itemActiveColor, itemInactiveColor, forceTint);
@@ -1723,9 +1743,9 @@ public class AHBottomNavigation extends FrameLayout {
      * @return The view at the position, or null
      */
     public View getViewAtPosition(int position) {
-        if (linearLayoutContainer != null && position >= 0
-                && position < linearLayoutContainer.getChildCount()) {
-            return linearLayoutContainer.getChildAt(position);
+        if (tabItemContainer != null && position >= 0
+                && position < tabItemContainer.getChildCount()) {
+            return tabItemContainer.getChildAt(position);
         }
         return null;
     }

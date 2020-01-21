@@ -1,6 +1,7 @@
 package com.aurelhubert.ahbottomnavigation;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -13,7 +14,10 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.content.res.AppCompatResources;
+import androidx.core.widget.ImageViewCompat;
+
 import android.view.View;
+import android.widget.ImageView;
 
 /**
  * AHBottomNavigationItem
@@ -36,6 +40,8 @@ public class AHBottomNavigationItem {
     private
     @ColorRes
     int colorRes = 0;
+    @ColorInt
+    int colorTintInactive;
 
     private boolean isCustomView = false;
 
@@ -64,8 +70,18 @@ public class AHBottomNavigationItem {
         this.data = data;
     }
 
+
     public interface OnBindCustomItemView {
         void onBindView(View view, Object data);
+    }
+
+    public void setColorTintInactive(@ColorInt int colorTintInactive) {
+        this.colorTintInactive = colorTintInactive;
+    }
+
+    @ColorInt
+    public int getColorTintInactive() {
+        return colorTintInactive;
     }
 
     /**
@@ -196,6 +212,19 @@ public class AHBottomNavigationItem {
     public Drawable getDrawable(Context context, boolean active) {
         if (active) return getActiveDrawable(context);
         else return getDrawable(context);
+    }
+
+    public void setIconTint(ImageView icon, boolean isCurrentItem) {
+        if (isCurrentItem) {
+            ImageViewCompat.setImageTintList(icon, null);
+        } else {
+            if (getColorTintInactive() != 0) {
+                ImageViewCompat.setImageTintList(icon, ColorStateList.valueOf(getColorTintInactive()));
+            } else {
+                ImageViewCompat.setImageTintList(icon, null);
+            }
+        }
+
     }
 
     public void setDrawable(@DrawableRes int drawableRes) {

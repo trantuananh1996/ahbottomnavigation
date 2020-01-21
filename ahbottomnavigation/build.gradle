@@ -37,6 +37,7 @@ android {
         versionName "2.1.0"
         versionCode 46
         versionName "2.3.4"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -45,13 +46,14 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = '1.8'
-        targetCompatibility = '1.8'
+//        coreLibraryDesugaringEnabled true
+        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_8
     }
 }
 
 dependencies {
-    implementation 'com.google.android.material:material:1.1.0-alpha10'
+    implementation 'com.google.android.material:material:1.2.0-alpha03'
 
 }
 
