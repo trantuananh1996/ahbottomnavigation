@@ -59,14 +59,6 @@ public class AHBottomNavigation extends FrameLayout {
 
     private boolean isHideTitleInClassic = false;
 
-    public void validate(int position) {
-        AHBottomNavigationItem item = items.get(position);
-        if (item.isCustomView()) {
-            if (views.size() != 0)
-                item.getOnBindCustomItemView().onBindView(views.get(position), item.getData());
-        }
-    }
-
     // Title state
     public enum TitleState {
         SHOW_WHEN_ACTIVE,
@@ -251,7 +243,8 @@ public class AHBottomNavigation extends FrameLayout {
         }
 
         notificationTextColor = ContextCompat.getColor(context, android.R.color.white);
-        bottomNavigationHeight = (int) resources.getDimension(R.dimen.bottom_navigation_height);
+        if (bottomNavigationHeight == 0)
+            bottomNavigationHeight = (int) resources.getDimension(R.dimen.bottom_navigation_height);
 
         itemActiveColor = titleColorActive;
         itemInactiveColor = titleColorInactive;
@@ -280,7 +273,7 @@ public class AHBottomNavigation extends FrameLayout {
             Log.w(TAG, "The items list should not have more than 5 items");
         }
 
-        int layoutHeight = (int) resources.getDimension(R.dimen.bottom_navigation_height);
+        int layoutHeight = bottomNavigationHeight;
 
         removeAllViews();
         backgroundColorView = new View(context);
@@ -304,8 +297,7 @@ public class AHBottomNavigation extends FrameLayout {
         tabItemContainer = new LinearLayout(context);
         tabItemContainer.setOrientation(LinearLayout.HORIZONTAL);
         tabItemContainer.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM);
-
-        LayoutParams layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        LayoutParams layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, layoutHeight);
         addView(tabItemContainer, layoutParams);
         tabItemContainer.setBackgroundColor(Color.TRANSPARENT);
         if (isClassic()) {
@@ -1785,6 +1777,18 @@ public class AHBottomNavigation extends FrameLayout {
      */
     public void setItemDisableColor(@ColorInt int itemDisableColor) {
         this.itemDisableColor = itemDisableColor;
+    }
+
+    public void validate(int position) {
+        AHBottomNavigationItem item = items.get(position);
+        if (item.isCustomView()) {
+            if (views.size() != 0)
+                item.getOnBindCustomItemView().onBindView(views.get(position), item.getData());
+        }
+    }
+
+    public void setBottomNavigationHeight(int height) {
+        bottomNavigationHeight = height;
     }
 
 ////////////////
